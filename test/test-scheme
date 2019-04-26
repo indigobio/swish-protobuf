@@ -1,0 +1,14 @@
+#!/bin/bash
+(cd ..; swish -q <<EOF
+(reset-handler abort)
+(compile-imported-libraries #t)
+(import (test smoke))
+(smoke-test)
+EOF
+)
+runner=~/protobuf/conformance/conformance-test-runner
+if [ ! -x $runner ]; then
+    echo "Please install $runner"
+    exit 1
+fi
+$runner --enforce_recommended --failure_list failure_list_scheme.txt ./conformance-scheme
