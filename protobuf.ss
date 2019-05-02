@@ -38,14 +38,12 @@
        (and (identifier? #'type)
             (andmap identifier? #'(key ...))
             (andmap integer? (datum (value ...))))
-       (begin
-         (define-syntax (type x)
-           (syntax-case x ()
-             [(_ s)
-              (cond
-               [(assq (datum s) '((key . value) ...)) => cdr]
-               [else (syntax-error x "unknown enum member")])]))
-         (export type))]))
+       (define-syntax (type x)
+         (syntax-case x ()
+           [(_ s)
+            (cond
+             [(assq (datum s) '((key . value) ...)) => cdr]
+             [else (syntax-error x "unknown enum member")])]))]))
 
   (define-syntax (define-message x)
     (define (fresh-id prefix stype)
@@ -90,8 +88,7 @@
              (define-property type *merger* #'merge-type)
              (define-property type *reader* #'read-type)
              (define-property type *sizer* #'size-type)
-             (define-property type *writer* #'write-type)
-             (export type)))]))
+             (define-property type *writer* #'write-type)))]))
 
   (define-syntax read-message
     (syntax-rules ()
