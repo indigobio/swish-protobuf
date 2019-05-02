@@ -24,6 +24,9 @@ definition:
 
 <pre>(define-tuple <i>type</i> (<i>field-name</i> ...))</pre>
 
+Each message definition uses <tt>define-property</tt> to associate the
+procedures that read, size, merge, and write it with _type_.
+
 #### Enumeration definitions
 
 <pre>(define-enum <i>type</i> (<i>name</i> <i>value</i>) ...)</pre>
@@ -36,7 +39,6 @@ there is not a guaranteed one-to-one mapping from values to symbols.
 
 #### Limitations
 
-- Message and enumeration definitions are automatically exported. As a result, the <tt>define-message</tt> and <tt>define-enum</tt> forms must be used within a library or module. The message definitions use <tt>define-property</tt> to associate the procedures that read, size, merge, and write them with the name of the message.
 - One-of fields are treated like regular fields.
 - Groups and extensions are not supported.
 - The writer does not honor the <tt>[packed=false]</tt> option, but the reader supports both packed and unpacked repeated scalar numeric fields.
