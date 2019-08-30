@@ -110,5 +110,5 @@ install the cmake, g++, and libprotoc-dev packages.
 ### Use proto-gen-scheme
 
 <pre>
-protoc --plugin=<i>path-to-proto-gen-scheme</i> --scheme_out=<i>OUT_DIR</i> <i>PROTO_FILES</i>
+protoc --plugin=<i>path-to-protoc-gen-scheme</i> --scheme_out=<i>OUT_DIR</i> <i>PROTO_FILES</i>
 </pre>
