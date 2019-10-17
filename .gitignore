@@ -1,5 +1,8 @@
 *~
+*.html
+*.mo
 *.so
+*.sop
 /CMakeCache.txt
 /CMakeFiles
 /Makefile

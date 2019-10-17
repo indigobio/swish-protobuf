@@ -15,17 +15,6 @@
   (include "timestamp_pb.ss")
   (include "wrappers_pb.ss")
 
-  (define default-response
-    (ConformanceResponse make
-      [parse_error ""]
-      [serialize_error ""]
-      [runtime_error ""]
-      [protobuf_payload '#vu8()]
-      [json_payload ""]
-      [skipped ""]
-      [jspb_payload ""]
-      [text_payload ""]))
-
   (define (read-request ip)
     (let ([bv (get-bytevector-n ip 4)])
       (cond
@@ -50,55 +39,55 @@
        (cond
         [(zero? (bytevector-length protobuf_payload))
          (write-response
-          (ConformanceResponse copy default-response
+          (make-message ConformanceResponse
             [skipped "no protobuf_payload"])
           op)]
         [(not (eqv? requested_output_format (WireFormat PROTOBUF)))
          (write-response
-          (ConformanceResponse copy default-response
+          (make-message ConformanceResponse
             [skipped "requested_output_format != PROTOBUF"])
           op)]
         [(string=? message_type "protobuf_test_messages.proto2.TestAllTypesProto2")
          (match (catch (read-message TestAllTypesProto2 protobuf_payload))
            [#(EXIT ,reason)
             (write-response
-             (ConformanceResponse copy default-response
+             (make-message ConformanceResponse
                [parse_error (exit-reason->english reason)])
              op)]
            [,msg
             (match (catch (write-message TestAllTypesProto2 msg))
               [#(EXIT ,reason)
                (write-response
-                (ConformanceResponse copy default-response
+                (make-message ConformanceResponse
                   [serialize_error (exit-reason->english reason)])
                 op)]
               [,msg
                (write-response
-                (ConformanceResponse copy default-response
+                (make-message ConformanceResponse
                   [protobuf_payload msg])
                 op)])])]
         [(string=? message_type "protobuf_test_messages.proto3.TestAllTypesProto3")
          (match (catch (read-message TestAllTypesProto3 protobuf_payload))
            [#(EXIT ,reason)
             (write-response
-             (ConformanceResponse copy default-response
+             (make-message ConformanceResponse
                [parse_error (exit-reason->english reason)])
              op)]
            [,msg
             (match (catch (write-message TestAllTypesProto3 msg))
               [#(EXIT ,reason)
                (write-response
-                (ConformanceResponse copy default-response
+                (make-message ConformanceResponse
                   [serialize_error (exit-reason->english reason)])
                 op)]
               [,msg
                (write-response
-                (ConformanceResponse copy default-response
+                (make-message ConformanceResponse
                   [protobuf_payload msg])
                 op)])])]
         [else
          (write-response
-          (ConformanceResponse copy default-response
+          (make-message ConformanceResponse
             [skipped "unsupported message_type"])
           op)])
        (main ip op)])))

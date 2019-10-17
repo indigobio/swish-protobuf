@@ -25,6 +25,7 @@
   (export
    define-enum
    define-message
+   make-message
    read-message
    write-message
    )
@@ -79,16 +80,37 @@
                          (read-type lip fname ...)])))))
              (define (size-type x ht)
                (type open x (fname ...))
+               (check-field (make-who type fname) fname ftype) ...
                (cache-size! x ht (+ (size-field fname ftype fnumber ht) ...)))
              (define (write-type x ht op)
                (type open x (fname ...))
                (write-field fname ftype fnumber ht op)
                ...
                (void))
+             (define-property type *defaults*
+               `((fname . ,(default-value ftype)) ...))
              (define-property type *merger* #'merge-type)
              (define-property type *reader* #'read-type)
              (define-property type *sizer* #'size-type)
              (define-property type *writer* #'write-type)))]))
+
+  (define-syntax (make-message x)
+    (define (build defaults specified)
+      (match defaults
+        [() '()]
+        [((,field . ,default) . ,rest)
+         (if (memq field specified)
+             (build rest specified)
+             (cons (datum->syntax #'* `(,field ',default))
+               (build rest specified)))]))
+    (lambda (lookup)
+      (syntax-case x ()
+        [(_ type [field e] ...)
+         (and (identifier? #'type) (for-all identifier? #'(field ...)))
+         #`(type make [field e] ...
+             #,@(build (or (lookup #'type #'*defaults*)
+                           (syntax-error #'type "undefined message type"))
+                  (datum (field ...))))])))
 
   (define-syntax read-message
     (syntax-rules ()
@@ -120,38 +142,29 @@
         (writer x ht op))
       (get)))
 
+  (define *defaults*)
   (define *merger*)
   (define *reader*)
   (define *sizer*)
   (define *writer*)
 
-  (define-syntax (message-merger x)
-    (lambda (lookup)
-      (syntax-case x ()
-        [(_ type)
-         (or (lookup #'type #'*merger*)
-             (syntax-error #'type "undefined message type"))])))
+  (define-syntax define-lookup
+    (syntax-rules ()
+      [(_ name property)
+       (define-syntax (name x)
+         (lambda (lookup)
+           (syntax-case x ()
+             [(_ type)
+              (or (lookup #'type #'property)
+                  (syntax-error #'type "undefined message type"))])))]))
 
-  (define-syntax (message-reader x)
-    (lambda (lookup)
-      (syntax-case x ()
-        [(_ type)
-         (or (lookup #'type #'*reader*)
-             (syntax-error #'type "undefined message type"))])))
+  (define-lookup message-merger *merger*)
 
-  (define-syntax (message-sizer x)
-    (lambda (lookup)
-      (syntax-case x ()
-        [(_ type)
-         (or (lookup #'type #'*sizer*)
-             (syntax-error #'type "undefined message type"))])))
+  (define-lookup message-reader *reader*)
 
-  (define-syntax (message-writer x)
-    (lambda (lookup)
-      (syntax-case x ()
-        [(_ type)
-         (or (lookup #'type #'*writer*)
-             (syntax-error #'type "undefined message type"))])))
+  (define-lookup message-sizer *sizer*)
+
+  (define-lookup message-writer *writer*)
 
   (define-syntax cache-size!
     (syntax-rules ()
@@ -303,6 +316,75 @@
                            (read-map lip key value)])))])])
          (check-wire-type wire-type wire-type-length-delimited)
          (read-message-field x snoc read-map lip))]))
+
+  (define-syntax (make-who x)
+    (syntax-case x ()
+      [(k type fname) #`(quote #,(compound-id #'k #'type "." #'fname))]))
+
+  (define-syntax check-field
+    (syntax-rules ()
+      ;; integers
+      [(_ who x int32)
+       (memq (datum int32) '(int32 sint32 sfixed32))
+       (unless (int32? x)
+         (errorf who "~s is not a ~a" x 'int32))]
+      [(_ who x uint32)
+       (memq (datum uint32) '(uint32 fixed32))
+       (unless (uint32? x)
+         (errorf who "~s is not a ~a" x 'uint32))]
+      [(_ who x int64)
+       (memq (datum int64) '(int64 sint64 sfixed64))
+       (unless (int64? x)
+         (errorf who "~s is not a ~a" x 'int64))]
+      [(_ who x uint64)
+       (memq (datum uint64) '(uint64 fixed64))
+       (unless (uint64? x)
+         (errorf who "~s is not a ~a" x 'uint64))]
+      ;; enum
+      [(_ who x (enum type))
+       (keyword? enum)
+       (unless (int32? x)
+         (errorf who "~s is not a ~a" x 'type))]
+      ;; bool
+      [(_ who x bool)
+       (keyword? bool)
+       (void)]
+      ;; float & double
+      [(_ who x real)
+       (memq (datum real) '(double float))
+       (unless (real? x)
+         (errorf who "~s is not a ~a" x 'real))]
+      ;; string
+      [(_ who x string)
+       (keyword? string)
+       (unless (string? x)
+         (errorf who "~s is not a string" x))]
+      ;; bytes
+      [(_ who x bytes)
+       (keyword? bytes)
+       (unless (bytevector? x)
+         (errorf who "~s is not a bytevector" x))]
+      ;; message
+      [(_ who x (message type))
+       (keyword? message)
+       (unless (or (not x) (type is? x))
+         (errorf who "~s is not a ~a" x 'type))]
+      ;; repeated
+      [(_ who x (repeated type))
+       (keyword? repeated)
+       (if (list? x)
+           (for-all (lambda (e) (check-field who e type)) x)
+           (errorf who "~s is not a list" x))]
+      ;; map
+      [(_ who x (map key-type value-type))
+       (keyword? map)
+       (if (and (list? x) (for-all pair? x))
+           (for-all
+            (lambda (p)
+              (check-field who (car p) key-type)
+              (check-field who (cdr p) value-type))
+            x)
+           (errorf who "~s is not a map" x))]))
 
   (define-syntax size-field
     (syntax-rules ()
@@ -715,8 +797,6 @@
     (size-varint (if (< x 0) (logand x #xFFFFFFFF) x)))
 
   (define (write-int32 x op)
-    (unless (int32? x)
-      (errorf 'write-message "~s is not an int32" x))
     (write-varint (if (< x 0) (logand x #xFFFFFFFF) x) op))
 
   (define (read-int64 lip)
@@ -727,45 +807,31 @@
     (size-varint (if (< x 0) (logand x #xFFFFFFFFFFFFFFFF) x)))
 
   (define (write-int64 x op)
-    (unless (int64? x)
-      (errorf 'write-message "~s is not an int64" x))
     (write-varint (if (< x 0) (logand x #xFFFFFFFFFFFFFFFF) x) op))
 
   (define (read-uint32 lip) (logand (read-varint lip) #xFFFFFFFF))
 
   (alias size-uint32 size-varint)
 
-  (define (write-uint32 x op)
-    (unless (uint32? x)
-      (errorf 'write-message "~s is not a uint32" x))
-    (write-varint x op))
+  (alias write-uint32 write-varint)
 
   (define (read-uint64 lip) (logand (read-varint lip) #xFFFFFFFFFFFFFFFF))
 
   (alias size-uint64 size-varint)
 
-  (define (write-uint64 x op)
-    (unless (uint64? x)
-      (errorf 'write-message "~s is not a uint64" x))
-    (write-varint x op))
+  (alias write-uint64 write-varint)
 
   (alias read-sint32 read-zigzag)
 
   (alias size-sint32 size-zigzag)
 
-  (define (write-sint32 x op)
-    (unless (int32? x)
-      (errorf 'write-message "~s is not a sint32" x))
-    (write-zigzag x op))
+  (alias write-sint32 write-zigzag)
 
   (alias read-sint64 read-zigzag)
 
   (alias size-sint64 size-zigzag)
 
-  (define (write-sint64 x op)
-    (unless (int64? x)
-      (errorf 'write-message "~s is not a sint64" x))
-    (write-zigzag x op))
+  (alias write-sint64 write-zigzag)
 
   (define (read-bool lip) (not (eqv? (read-varint lip) 0)))
 
@@ -793,8 +859,6 @@
   (define-syntax size-fixed64 (identifier-syntax (lambda (x) 8)))
 
   (define (write-fixed64 x op)
-    (unless (uint64? x)
-      (errorf 'write-message "~s is not a fixed64" x))
     (write-fixed 8 x op))
 
   (define (read-sfixed64 lip) (read-sfixed 8 lip))
@@ -802,8 +866,6 @@
   (define-syntax size-sfixed64 (identifier-syntax (lambda (x) 8)))
 
   (define (write-sfixed64 x op)
-    (unless (int64? x)
-      (errorf 'write-message "~s is not a sfixed64" x))
     (write-fixed 8 x op))
 
   ;; Length-delimited wire types
@@ -881,8 +943,6 @@
   (define-syntax size-fixed32 (identifier-syntax (lambda (x) 4)))
 
   (define (write-fixed32 x op)
-    (unless (uint32? x)
-      (errorf 'write-message "~s is not a fixed32" x))
     (write-fixed 4 x op))
 
   (define (read-sfixed32 lip) (read-sfixed 4 lip))
@@ -890,7 +950,4 @@
   (define-syntax size-sfixed32 (identifier-syntax (lambda (x) 4)))
 
   (define (write-sfixed32 x op)
-    (unless (int32? x)
-      (errorf 'write-message "~s is not a sfixed32" x))
-    (write-fixed 4 x op))
-  )
+    (write-fixed 4 x op)))
