@@ -50,13 +50,21 @@ there is not a guaranteed one-to-one mapping from values to symbols.
 - Integer fields are represented by exact integers (fixnums and
   bignums). The default value is 0.
 - Enum fields are represented by exact integers. The default value is 0.
-- Floating-point fields are represented by flonums. The default value is 0.0.
+- Floating-point fields are represented by flonums and can contain any real number. The default value is 0.0.
 - Boolean fields are represented by booleans. The default value is #f.
 - String fields are represented by strings with the UTF-8 encoding. The default value is the empty string.
 - Bytes fields are represented by bytevectors. The default value is the empty bytevector.
 - Message fields are represented by a tuple or #f for missing. The default value is #f.
 - Repeated fields are represented by a list of the underlying type. The default value is the empty list.
 - Map fields types are represented by a list of pairs. For each pair, the _car_ is the key, and the _cdr_ is the value. The default value is the empty list.
+
+#### Maker
+
+<pre>(make-message <i>type</i> (<i>field</i> <i>value</i>) ...)</pre>
+
+This macro makes a message of _type_ with each specified _field_ set
+to its corresponding _value_. Unspecified fields are set to their
+default values.
 
 #### Reader
 
