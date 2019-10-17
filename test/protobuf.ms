@@ -38,7 +38,7 @@
     bv))
 
 (define (make-msg depth)
-  (TestAllTypesProto2 make
+  (make-message TestAllTypesProto2
     [optional_int32 #x-76543210]
     [optional_int64 #x-7654321089ABCDEF]
     [optional_uint32 #xFEDCBA98]
@@ -63,7 +63,6 @@
     [optional_nested_enum (TestAllTypesProto2.NestedEnum NEG)]
     [optional_foreign_enum (ForeignEnumProto2 FOREIGN_BAR)]
     [optional_string_piece "\x3D;\x527;\xA8B6;\x101CC5;"]
-    [optional_cord ""]
     [recursive_message (and (< depth 3) (make-msg (+ depth 1)))]
     [repeated_int32 int32-list]
     [repeated_int64 int64-list]
@@ -104,8 +103,6 @@
       (ForeignEnumProto2 FOREIGN_FOO)
       (ForeignEnumProto2 FOREIGN_BAR)
       (ForeignEnumProto2 FOREIGN_BAZ))]
-    [repeated_string_piece '()]
-    [repeated_cord '()]
     [map_int32_int32 (map cons int32-list int32-list)]
     [map_int64_int64 (map cons int64-list int64-list)]
     [map_uint32_uint32 (map cons uint32-list uint32-list)]
@@ -141,15 +138,6 @@
      `(("" . ,(ForeignEnumProto2 FOREIGN_FOO))
        ("a" . ,(ForeignEnumProto2 FOREIGN_BAR))
        ("b" . ,(ForeignEnumProto2 FOREIGN_BAZ)))]
-    [oneof_uint32 0]
-    [oneof_nested_message #f]
-    [oneof_string ""]
-    [oneof_bytes '#vu8()]
-    [oneof_bool #f]
-    [oneof_uint64 0]
-    [oneof_float 0.0]
-    [oneof_double 0.0]
-    [oneof_enum 0]
     [fieldname1 (- (ash 1 7) 1)]
     [field_name2 (ash 1 7)]
     [_field_name3 (+ (ash 1 7) 1)]
