@@ -33,8 +33,9 @@ procedures that read, size, merge, and write it with _type_.
 
 Each enumeration definition produces a macro that converts the member
 name to its int32 value. Each enum field stores the int32 value, not a
-symbol. Use <tt>(_type_ _name_)</tt> to express the int32 value of
-member _name_ in enumeration _type_. We don't use symbols because
+symbol. The field may store an int32 value not specified in the
+enumeration. Use <tt>(_type_ _name_)</tt> to express the int32 value
+of member _name_ in enumeration _type_. We don't use symbols because
 there is not a guaranteed one-to-one mapping from values to symbols.
 
 #### Limitations

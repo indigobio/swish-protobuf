@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 swish-test -L .. protobuf.ms
 runner=~/protobuf/conformance/conformance-test-runner
 if [ -x $runner ]; then
