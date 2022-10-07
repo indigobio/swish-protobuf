@@ -102,6 +102,22 @@
   (oneof_float float 117)
   (oneof_double double 118)
   (oneof_enum (enum TestAllTypesProto2.NestedEnum) 119)
+;;  (data (group TestAllTypesProto2.Data) 201)
+  (default_int32 int32 241)
+  (default_int64 int64 242)
+  (default_uint32 uint32 243)
+  (default_uint64 uint64 244)
+  (default_sint32 sint32 245)
+  (default_sint64 sint64 246)
+  (default_fixed32 fixed32 247)
+  (default_fixed64 fixed64 248)
+  (default_sfixed32 sfixed32 249)
+  (default_sfixed64 sfixed64 250)
+  (default_float float 251)
+  (default_double double 252)
+  (default_bool bool 253)
+  (default_string string 254)
+  (default_bytes bytes 255)
   (fieldname1 int32 401)
   (field_name2 int32 402)
   (_field_name3 int32 403)
@@ -125,6 +141,10 @@
   (a int32 1)
   (corecursive (message TestAllTypesProto2) 2))
 
+(define-message TestAllTypesProto2.Data
+  (group_int32 int32 202)
+  (group_uint32 uint32 203))
+
 (define-message TestAllTypesProto2.MessageSetCorrect)
 
 (define-message TestAllTypesProto2.MessageSetCorrectExtension1
@@ -146,8 +166,23 @@
   (optional_int32 int32 1001)
   (optional_string string 1002)
   (nested_message (message ForeignMessageProto2) 1003)
+;;  (optionalgroup (group UnknownToTestAllTypes.OptionalGroup) 1004)
   (optional_bool bool 1006)
   (repeated_int32 (repeated int32) 1011))
+
+(define-message UnknownToTestAllTypes.OptionalGroup
+  (a int32 1))
+
+(define-message NullHypothesisProto2)
+
+(define-message EnumOnlyProto2)
+
+(define-enum EnumOnlyProto2.Bool
+  (kFalse 0)
+  (kTrue 1))
+
+(define-message OneStringProto2
+  (data string 1))
 
 (define-enum ForeignEnumProto2
   (FOREIGN_FOO 0)

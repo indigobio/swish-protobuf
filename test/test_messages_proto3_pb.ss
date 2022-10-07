@@ -108,6 +108,7 @@
   (oneof_float float 117)
   (oneof_double double 118)
   (oneof_enum (enum TestAllTypesProto3.NestedEnum) 119)
+  (oneof_null_value (enum NullValue) 120)
   (optional_bool_wrapper (message BoolValue) 201)
   (optional_int32_wrapper (message Int32Value) 202)
   (optional_int64_wrapper (message Int64Value) 203)
@@ -132,6 +133,7 @@
   (optional_struct (message Struct) 304)
   (optional_any (message Any) 305)
   (optional_value (message Value) 306)
+  (optional_null_value (enum NullValue) 307)
   (repeated_duration (repeated (message Duration)) 311)
   (repeated_timestamp (repeated (message Timestamp)) 312)
   (repeated_fieldmask (repeated (message FieldMask)) 313)
@@ -172,12 +174,20 @@
   (ALIAS_FOO 0)
   (ALIAS_BAR 1)
   (ALIAS_BAZ 2)
-  (QUX 2)
-  (qux 2)
+  (MOO 2)
+  (moo 2)
   (bAz 2))
 
 (define-message ForeignMessage
   (c int32 1))
+
+(define-message NullHypothesisProto3)
+
+(define-message EnumOnlyProto3)
+
+(define-enum EnumOnlyProto3.Bool
+  (kFalse 0)
+  (kTrue 1))
 
 (define-enum ForeignEnum
   (FOREIGN_FOO 0)
