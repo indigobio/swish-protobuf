@@ -16,7 +16,7 @@ The following field types are supported:
 - Floating-point: <tt>float</tt> and <tt>double</tt>
 - Boolean: <tt>bool</tt>
 - String: <tt>string</tt>
-- Bytevector: <tt>bytes<</tt>
+- Bytevector: <tt>bytes</tt>
 - Message: <tt>(message _message-type_)</tt>
 - List of any of the above: <tt>(repeated _type_)</tt>
 - Map: <tt>(map _key-type_ _value-type_)</tt>
