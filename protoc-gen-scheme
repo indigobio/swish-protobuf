@@ -1,0 +1,10 @@
+#!/usr/bin/env swish
+(let ([op (console-error-port)])
+  ;; Don't send anything to stdout except the response message
+  (current-output-port op)
+  (console-output-port op)
+  (trace-output-port op))
+(let ([dir (path-parent (car (command-line)))])
+  (library-directories (list (cons dir dir))))
+(import (generator generator))
+(main (standard-input-port) (standard-output-port))

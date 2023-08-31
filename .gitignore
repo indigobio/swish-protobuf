@@ -2,9 +2,3 @@
 *.html
 *.mo
 *.so
-*.sop
-/CMakeCache.txt
-/CMakeFiles
-/Makefile
-/cmake_install.cmake
-/protoc-gen-scheme
