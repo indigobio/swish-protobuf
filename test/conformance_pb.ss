@@ -18,6 +18,7 @@
 (define-message ConformanceResponse
   (parse_error string 1)
   (serialize_error string 6)
+  (timeout_error string 9)
   (runtime_error string 2)
   (protobuf_payload bytes 3)
   (json_payload string 4)

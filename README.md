@@ -40,6 +40,7 @@ there is not a guaranteed one-to-one mapping from values to symbols.
 
 #### Limitations
 
+- Field presence is not tracked, and default values are not serialized.
 - One-of fields are treated like regular fields.
 - Groups and extensions are not supported.
 - The writer does not honor the <tt>[packed=false]</tt> option, but the reader supports both packed and unpacked repeated scalar numeric fields.
@@ -102,21 +103,11 @@ buffers.
 
 ## Scheme Protocol Buffer Compiler Plugin
 
-[scheme_generator.cc](https://github.com/burgerrg/swish-protobuf/blob/master/scheme_generator.cc)
-is the source code for the proto-gen-scheme protoc plugin. It
-generates S-expression definitions of messages and enumerations from
-protobuf text definitions.
+[generator.ss](https://github.com/burgerrg/swish-protobuf/blob/master/generator/generator.ss)
+is the source code for the protoc-gen-scheme protoc plugin. It generates S-expression
+definitions of messages and enumerations from protobuf text definitions.
 
-### Build proto-gen-scheme
-
-A C++11 compiler and the cmake and protobuf packages are required.  On
-macOS, install the cmake and protobuf Homebrew formulas. On Ubuntu,
-install the cmake, g++, and libprotoc-dev packages.
-
-1. `cmake .`
-2. `make`
-
-### Use proto-gen-scheme
+### Use protoc-gen-scheme
 
 <pre>
 protoc --plugin=<i>path-to-protoc-gen-scheme</i> --scheme_out=<i>OUT_DIR</i> <i>PROTO_FILES</i>

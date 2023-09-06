@@ -1,6 +1,6 @@
 #!/bin/sh
 swish-test -L .. protobuf.ms
-runner=~/protobuf/conformance/conformance-test-runner
+runner=~/protobuf/conformance_test_runner
 if [ -x $runner ]; then
     $runner --enforce_recommended --failure_list failure_list_scheme.txt ./conformance-scheme
 fi
