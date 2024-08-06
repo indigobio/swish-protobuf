@@ -92,11 +92,16 @@
   (define (fqn->qn fqn fqn->desc desc->qn)
     (eq-hashtable-ref desc->qn (hashtable-ref fqn->desc fqn #f) fqn))
 
+  (define (make-fqn package prefix name)
+    (if (string=? package "")
+        (format ".~a~a" prefix name)
+        (format ".~a.~a~a" package prefix name)))
+
   (define (register-messages! dps package prefix fqn->desc desc->qn)
     (for-each
      (lambda (dp)
        (DescriptorProto open dp (name nested_type enum_type))
-       (hashtable-set! fqn->desc (format ".~a.~a~a" package prefix name) dp)
+       (hashtable-set! fqn->desc (make-fqn package prefix name) dp)
        (let ([qn (string-append prefix name)])
          (eq-hashtable-set! desc->qn dp qn)
          (let ([prefix (string-append qn ".")])
@@ -108,7 +113,7 @@
     (for-each
      (lambda (edp)
        (EnumDescriptorProto open edp (name))
-       (hashtable-set! fqn->desc (format ".~a.~a~a" package prefix name) edp)
+       (hashtable-set! fqn->desc (make-fqn package prefix name) edp)
        (eq-hashtable-set! desc->qn edp (string-append prefix name)))
      edps))
 
