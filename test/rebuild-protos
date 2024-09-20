@@ -16,3 +16,5 @@ protoc --plugin=../protoc-gen-scheme --proto_path=$PB_REPO/src --scheme_out=. go
 
 mv google/protobuf/*.ss .
 rm -rf google/
+
+protoc --plugin=../protoc-gen-scheme --proto_path=.. --proto_path=. --scheme_out=. test_options.proto

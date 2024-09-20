@@ -13,7 +13,7 @@
   (list_value (message ListValue) 6))
 
 (define-message ListValue
-  (values (repeated (message Value)) 1))
+  (values (list (message Value)) 1))
 
 (define-enum NullValue
   (NULL_VALUE 0))

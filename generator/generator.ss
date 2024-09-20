@@ -45,7 +45,7 @@
       [file (map (lambda (fn) (generate-file (hashtable-ref fn->fdp fn #f) fqn->desc desc->qn))
               file_to_generate)]))
 
-  (define (get-type label type type_name fqn->desc desc->qn)
+  (define (get-type label type type_name fqn->desc desc->qn options)
     (define repeated? (eqv? label (FieldDescriptorProto.Label LABEL_REPEATED)))
     (cond
      [(and repeated?
@@ -60,10 +60,16 @@
       => (lambda (fields)
            (define (inner-type field)
              (FieldDescriptorProto open field (label type type_name))
-             (get-type label type type_name fqn->desc desc->qn))
+             (get-type label type type_name fqn->desc desc->qn options))
            (match fields
              [(,key ,value) `(map ,(inner-type key) ,(inner-type value))]))]
-     [repeated? `(repeated ,(get-base-type label type type_name fqn->desc desc->qn))]
+     [repeated?
+      (let* ([rtype (and options (FieldOptions swishtype options))]
+             [rtype
+              (if (or (not rtype) (string=? rtype ""))
+                  'list
+                  (string->symbol rtype))])
+        `(,rtype ,(get-base-type label type type_name fqn->desc desc->qn)))]
      [else (get-base-type label type type_name fqn->desc desc->qn)]))
 
   (define (get-base-type label type type_name fqn->desc desc->qn)
@@ -137,8 +143,8 @@
          (fprintf op "\n(define-message ~a" (eq-hashtable-ref desc->qn dp name))
          (for-each
           (lambda (fdp)
-            (FieldDescriptorProto open fdp (name number label type type_name))
-            (let ([type (get-type label type type_name fqn->desc desc->qn)])
+            (FieldDescriptorProto open fdp (name number label type type_name options))
+            (let ([type (get-type label type type_name fqn->desc desc->qn options)])
               (when type
                 (fprintf op "\n  (~a ~a ~a)" name type number))))
           field)

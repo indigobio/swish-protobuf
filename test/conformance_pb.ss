@@ -2,7 +2,7 @@
 ;;; source: conformance.proto
 
 (define-message FailureSet
-  (failure (repeated string) 1))
+  (failure (list string) 1))
 
 (define-message ConformanceRequest
   (protobuf_payload bytes 1)

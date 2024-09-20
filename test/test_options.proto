@@ -1,0 +1,18 @@
+syntax = "proto3";
+import "swish_options.proto";
+
+package test.options.proto;
+
+message SpecialTypesMessage {
+  repeated double repeated_double_list = 1 [(swish.protobuf.swishtype)="list"];
+  repeated double repeated_double_flvector = 2 [(swish.protobuf.swishtype)="flvector"];
+  repeated float repeated_float_flvector = 3 [(swish.protobuf.swishtype)="flvector"];
+}
+
+message FlvectorValue {
+  repeated double value = 1 [(swish.protobuf.swishtype)="flvector"];
+}
+
+message Container {
+  FlvectorValue inner = 1;
+}

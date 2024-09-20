@@ -2,4 +2,4 @@
 ;;; source: google/protobuf/field_mask.proto
 
 (define-message FieldMask
-  (paths (repeated string) 1))
+  (paths (list string) 1))

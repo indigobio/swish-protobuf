@@ -186,7 +186,8 @@
   (define-syntax default-value
     (syntax-rules ()
       [(_ (message type)) (keyword? message) #f]
-      [(_ (repeated type)) (keyword? repeated) '()]
+      [(_ (list type)) (keyword? list) '()]
+      [(_ (flvector type)) (keyword? flvector) '#vfl()]
       [(_ (map key-type value-type)) (keyword? map) '()]
       [(_ bool) (keyword? bool) #f]
       [(_ double) (keyword? double) 0.0]
@@ -197,7 +198,8 @@
 
   (define-syntax maybe-reverse
     (syntax-rules ()
-      [(_ x (repeated type)) (keyword? repeated) (reverse x)]
+      [(_ x (list type)) (keyword? list) (reverse x)]
+      [(_ x (flvector type)) (keyword? flvector) (consolidate-lazy-flvector x)]
       [(_ x (map key-type value-type)) (keyword? map) (reverse x)]
       [(_ x type) x]))
 
@@ -206,7 +208,8 @@
       [(_ (message type) a b)
        (and (keyword? message) (identifier? #'type))
        ((message-merger type) a b)]
-      [(_ (repeated type) a b) (keyword? repeated) (append a b)]
+      [(_ (list type) a b) (keyword? list) (append a b)]
+      [(_ (flvector type) a b) (keyword? flvector) (consolidate-lazy-flvector (cons b a))]
       [(_ (map key-type value-type) a b) (keyword? map) (append a b)]
       [(_ type a b) b]))
 
@@ -247,9 +250,9 @@
          (check-wire-type wire-type wire-type-length-delimited)
          (read-message-field x (message-merger type) (message-reader type)
            lip))]
-      ;; repeated varint scalars
-      [(_ x (repeated type) wire-type lip)
-       (and (keyword? repeated)
+      ;; list varint scalars
+      [(_ x (list type) wire-type lip)
+       (and (keyword? list)
             (memq (datum type) '(int32 int64 uint32 uint64 sint32 sint64 bool)))
        (cond
         [(eqv? wire-type wire-type-length-delimited)
@@ -257,13 +260,13 @@
         [else
          (check-wire-type wire-type wire-type-varint)
          (read-unpacked-field x (scalar-reader type) lip)])]
-      ;; repeated enum
-      [(_ x (repeated (enum type)) wire-type lip)
-       (and (keyword? repeated) (keyword? enum))
-       (read-field x (repeated int32) wire-type lip)]
-      ;; repeated 64-bit scalars
-      [(_ x (repeated type) wire-type lip)
-       (and (keyword? repeated)
+      ;; list enum
+      [(_ x (list (enum type)) wire-type lip)
+       (and (keyword? list) (keyword? enum))
+       (read-field x (list int32) wire-type lip)]
+      ;; list 64-bit scalars
+      [(_ x (list type) wire-type lip)
+       (and (keyword? list)
             (memq (datum type) '(fixed64 sfixed64 double)))
        (cond
         [(eqv? wire-type wire-type-length-delimited)
@@ -271,24 +274,42 @@
         [else
          (check-wire-type wire-type wire-type-64-bit)
          (read-unpacked-field x (scalar-reader type) lip)])]
-      ;; repeated string/bytes
-      [(_ x (repeated type) wire-type lip)
-       (and (keyword? repeated) (memq (datum type) '(string bytes)))
+      ;; flvector double
+      [(_ x (flvector double) wire-type lip)
+       (and (keyword? flvector) (keyword? double))
+       (cond
+        [(eqv? wire-type wire-type-length-delimited)
+         (read-packed-flvector x (scalar-reader double) lip 8)]
+        [else
+         (check-wire-type wire-type wire-type-64-bit)
+         (read-unpacked-field x (scalar-reader double) lip)])]
+      ;; flvector float
+      [(_ x (flvector float) wire-type lip)
+       (and (keyword? flvector) (keyword? float))
+       (cond
+        [(eqv? wire-type wire-type-length-delimited)
+         (read-packed-flvector x (scalar-reader float) lip 4)]
+        [else
+         (check-wire-type wire-type wire-type-32-bit)
+         (read-unpacked-field x (scalar-reader float) lip)])]
+      ;; list string/bytes
+      [(_ x (list type) wire-type lip)
+       (and (keyword? list) (memq (datum type) '(string bytes)))
        (begin
          (check-wire-type wire-type wire-type-length-delimited)
          (read-unpacked-field x (scalar-reader type) lip))]
-      ;; repeated 32-bit scalars
-      [(_ x (repeated type) wire-type lip)
-       (and (keyword? repeated) (memq (datum type) '(fixed32 sfixed32 float)))
+      ;; list 32-bit scalars
+      [(_ x (list type) wire-type lip)
+       (and (keyword? list) (memq (datum type) '(fixed32 sfixed32 float)))
        (cond
         [(eqv? wire-type wire-type-length-delimited)
          (read-packed-scalar x (scalar-reader type) lip)]
         [else
          (check-wire-type wire-type wire-type-32-bit)
          (read-unpacked-field x (scalar-reader type) lip)])]
-      ;; repeated message
-      [(_ x (repeated (message type)) wire-type lip)
-       (and (keyword? repeated) (keyword? message) (identifier? #'type))
+      ;; list message
+      [(_ x (list (message type)) wire-type lip)
+       (and (keyword? list) (keyword? message) (identifier? #'type))
        (begin
          (check-wire-type wire-type wire-type-length-delimited)
          (read-message-field x snoc (message-reader type) lip))]
@@ -369,12 +390,18 @@
        (keyword? message)
        (unless (or (not x) (type is? x))
          (errorf who "~s is not a ~a" x 'type))]
-      ;; repeated
-      [(_ who x (repeated type))
-       (keyword? repeated)
+      ;; list
+      [(_ who x (list type))
+       (keyword? list)
        (if (list? x)
            (for-each (lambda (e) (check-field who e type)) x)
            (errorf who "~s is not a list" x))]
+      ;; flvector
+      [(_ who x (flvector type))
+       (and (keyword? flvector)
+            (memq (datum type) '(double float)))
+       (unless (flvector? x)
+         (errorf who "~s is not a flvector" x))]
       ;; map
       [(_ who x (map key-type value-type))
        (keyword? map)
@@ -433,8 +460,8 @@
              (size-length-delimited fnumber ((message-sizer type) x ht))
              0))]
       ;; packed varint numeric scalars
-      [(_ e (repeated type) fnumber ht)
-       (and (keyword? repeated)
+      [(_ e (list type) fnumber ht)
+       (and (keyword? list)
             (memq (datum type) '(int32 int64 uint32 uint64 sint32 sint64)))
        (let ([ls e])
          (if (null? ls)
@@ -443,44 +470,60 @@
                (cache-size! ls ht
                  (fold-left (lambda (size x) (+ size ((scalar-sizer type) x)))
                    0 ls)))))]
-      ;; repeated enum
-      [(_ e (repeated (enum type)) fnumber ht)
-       (and (keyword? repeated) (keyword? enum))
-       (size-field e (repeated int32) fnumber ht)]
+      ;; list enum
+      [(_ e (list (enum type)) fnumber ht)
+       (and (keyword? list) (keyword? enum))
+       (size-field e (list int32) fnumber ht)]
       ;; packed bool
-      [(_ e (repeated bool) fnumber ht)
-       (and (keyword? repeated) (keyword? bool))
+      [(_ e (list bool) fnumber ht)
+       (and (keyword? list) (keyword? bool))
        (let ([ls e])
          (if (null? ls)
              0
              (size-length-delimited fnumber
                (cache-size! ls ht (length ls)))))]
       ;; packed 64-bit scalars
-      [(_ e (repeated type) fnumber ht)
-       (and (keyword? repeated) (memq (datum type) '(fixed64 sfixed64 double)))
+      [(_ e (list type) fnumber ht)
+       (and (keyword? list) (memq (datum type) '(fixed64 sfixed64 double)))
        (let ([ls e])
          (if (null? ls)
              0
              (size-length-delimited fnumber
                (cache-size! ls ht (* (length ls) 8)))))]
-      ;; repeated string/bytes
-      [(_ e (repeated type) fnumber ht)
-       (and (keyword? repeated) (memq (datum type) '(string bytes)))
+      ;; packed double flvector
+      [(_ e (flvector double) fnumber ht)
+       (and (keyword? flvector) (keyword? double))
+       (let ([v e])
+         (if (eq? v '#vfl())
+             0
+             (size-length-delimited fnumber
+               (cache-size! v ht (* (flvector-length v) 8)))))]
+      ;; packed float flvector
+      [(_ e (flvector float) fnumber ht)
+       (and (keyword? flvector) (keyword? float))
+       (let ([v e])
+         (if (eq? v '#vfl())
+             0
+             (size-length-delimited fnumber
+               (cache-size! v ht (* (flvector-length v) 4)))))]
+      ;; list string/bytes
+      [(_ e (list type) fnumber ht)
+       (and (keyword? list) (memq (datum type) '(string bytes)))
        (fold-left
         (lambda (size x)
           (+ size (size-length-delimited fnumber ((scalar-sizer type) x))))
         0 e)]
       ;; packed 32-bit scalars
-      [(_ e (repeated type) fnumber ht)
-       (and (keyword? repeated) (memq (datum type) '(fixed32 sfixed32 float)))
+      [(_ e (list type) fnumber ht)
+       (and (keyword? list) (memq (datum type) '(fixed32 sfixed32 float)))
        (let ([ls e])
          (if (null? ls)
              0
              (size-length-delimited fnumber
                (cache-size! ls ht (* (length ls) 4)))))]
-      ;; repeated message
-      [(_ e (repeated (message type)) fnumber ht)
-       (and (keyword? repeated) (keyword? message) (identifier? #'type))
+      ;; list message
+      [(_ e (list (message type)) fnumber ht)
+       (and (keyword? list) (keyword? message) (identifier? #'type))
        (fold-left
         (lambda (size x)
           (+ size (size-length-delimited fnumber ((message-sizer type) x ht))))
@@ -552,8 +595,8 @@
            (write-varint (cached-size x ht) op)
            ((message-writer type) x ht op)))]
       ;; packed scalars
-      [(_ e (repeated type) fnumber ht op)
-       (and (keyword? repeated)
+      [(_ e (list type) fnumber ht op)
+       (and (keyword? list)
             (memq (datum type) '(int32 int64 uint32 uint64 sint32 sint64 bool
                                   fixed64 sfixed64 double
                                   fixed32 sfixed32 float)))
@@ -562,21 +605,31 @@
            (write-key fnumber wire-type-length-delimited op)
            (write-varint (cached-size ls ht) op)
            (for-each (lambda (x) ((scalar-writer type) x op)) ls)))]
-      ;; repeated enum
-      [(_ e (repeated (enum type)) fnumber ht op)
-       (and (keyword? repeated) (keyword? enum))
-       (write-field e (repeated int32) fnumber ht op)]
-      ;; repeated string/bytes
-      [(_ e (repeated type) fnumber ht op)
-       (and (keyword? repeated) (memq (datum type) '(string bytes)))
+      ;; packed flvector
+      [(_ e (flvector type) fnumber ht op)
+       (and (keyword? flvector)
+            (memq (datum type) '(double float)))
+       (let ([v e])
+         (unless (eq? v '#vfl())
+           (write-key fnumber wire-type-length-delimited op)
+           (write-varint (cached-size v ht) op)
+           (do ([i 0 (fx1+ i)]) ((fx= i (flvector-length v)))
+             ((scalar-writer type) (flvector-ref v i) op))))]
+      ;; list enum
+      [(_ e (list (enum type)) fnumber ht op)
+       (and (keyword? list) (keyword? enum))
+       (write-field e (list int32) fnumber ht op)]
+      ;; list string/bytes
+      [(_ e (list type) fnumber ht op)
+       (and (keyword? list) (memq (datum type) '(string bytes)))
        (for-each
         (lambda (x)
           (write-key fnumber wire-type-length-delimited op)
           ((scalar-writer type) x op))
         e)]
-      ;; repeated message
-      [(_ e (repeated (message type)) fnumber ht op)
-       (and (keyword? repeated) (keyword? message)
+      ;; list message
+      [(_ e (list (message type)) fnumber ht op)
+       (and (keyword? list) (keyword? message)
             (identifier? #'type))
        (for-each
         (lambda (x)
@@ -626,6 +679,38 @@
           (read-list (cons (reader lip) ls) reader lip)))
     (let ([size (read-varint lip)])
       (read-list ls reader (new-limit lip size))))
+
+  (define (lazy-flvector-length x)
+    (cond
+     [(flvector? x) (flvector-length x)]
+     [(pair? x) (+ (lazy-flvector-length (car x)) (lazy-flvector-length (cdr x)))]
+     [else 1]))
+
+  (define (consolidate-lazy-flvector x)
+    (if (flvector? x)
+        x
+        (let ([v (make-flvector (lazy-flvector-length x))]
+              [i 0])
+          (let consolidate ([x x])
+            (cond
+             [(pair? x)
+              (consolidate (cdr x))
+              (consolidate (car x))]
+             [(flvector? x)
+              (do ([j 0 (fx1+ j)] [n (flvector-length x)]) ((= j n))
+                (flvector-set! v i (flvector-ref x j))
+                (set! i (+ i 1)))]
+             [else
+              (flvector-set! v i x)
+              (set! i (+ i 1))]))
+          v)))
+
+  (define (read-packed-flvector x reader lip nbytes)
+    (let* ([size (read-varint lip)]
+           [lip (new-limit lip size)]
+           [v (make-flvector (/ size nbytes))])
+      (do ([i 0 (fx1+ i)]) ((limit-reached? lip) (if (eq? x '#vfl()) v (cons v x)))
+        (flvector-set! v i (reader lip)))))
 
   (define-syntax read-unpacked-field
     (syntax-rules ()

@@ -1,6 +1,19 @@
-(import (chezscheme) (swish imports) (swish mat) (protobuf))
+(import
+ (chezscheme)
+ (protobuf)
+ (swish imports)
+ (swish mat)
+ )
 
 (include "test_messages_proto2_pb.ss")
+(include "test_options_pb.ss")
+
+(define-syntax (assert-equal? x)
+  (syntax-case x ()
+    [(_ e1 e2)
+     #`(let ([a e1] [b e2])
+         (unless (equal? a b)
+           (errorf #f "~s expected ~s, received ~s" #,(find-source x) a b)))]))
 
 (define (make-varint-list start limit)
   (let lp ([bits start])
@@ -36,6 +49,18 @@
     (do ([i 0 (+ i 1)]) [(eqv? i 256)]
       (bytevector-u8-set! bv i i))
     bv))
+
+(define (bv-append bv1 bv2)
+  (call-with-bytevector-output-port
+   (lambda (op)
+     (put-bytevector op bv1)
+     (put-bytevector op bv2))))
+
+(define (bv-repeat bv n)
+  (call-with-bytevector-output-port
+   (lambda (op)
+     (do ([i 0 (+ i 1)]) ((= i n))
+       (put-bytevector op bv)))))
 
 (define (make-msg depth)
   (make-message TestAllTypesProto2
@@ -161,54 +186,66 @@
   (let* ([m1 (make-msg 1)]
          [m2 (read-message TestAllTypesProto2
                (write-message TestAllTypesProto2 m1))])
-    (assert (equal? m1 m2))))
+    (assert-equal? m1 m2)))
+
+(define-syntax error-text
+  (syntax-rules ()
+    [(_ e) (exit-reason->english (catch e))]))
+
+(define-syntax define-bad-repeated
+  (syntax-rules ()
+    [(_ bad msg-type repeat)
+     (define-syntax bad
+       (syntax-rules ()
+         [(_ type field e)
+          (let* ([v e]
+                 [m (error-text
+                     (write-message msg-type
+                       (make-message msg-type [field (repeat v)])))])
+            (string=? m
+              (format "Exception in ~a.~a: ~s is not a ~a."
+                'msg-type 'field v 'type)))]))]))
+
+(define-syntax define-helpers
+  (syntax-rules ()
+    [(_ msg-type bad-field bad-key bad-value)
+     (begin
+       (define-syntax bad-field
+         (syntax-rules ()
+           [(_ type field e)
+            (let* ([v e]
+                   [m (error-text
+                       (write-message msg-type
+                         (make-message msg-type [field v])))])
+              (string=? m
+                (format "Exception in ~a.~a: ~s is not a ~a."
+                  'msg-type 'field v 'type)))]))
+       (define-syntax bad-key
+         (syntax-rules ()
+           [(_ type field $key $value)
+            (let* ([key $key] [value $value]
+                   [m (error-text
+                       (write-message msg-type
+                         (make-message msg-type
+                           [field (list (cons key value))])))])
+              (string=? m
+                (format "Exception in ~a.~a: ~s is not a ~a."
+                  'msg-type 'field key 'type)))]))
+       (define-syntax bad-value
+         (syntax-rules ()
+           [(_ type field $key $value)
+            (let* ([key $key] [value $value]
+                   [m (error-text
+                       (write-message msg-type
+                         (make-message msg-type
+                           [field (list (cons key value))])))])
+              (string=? m
+                (format "Exception in ~a.~a: ~s is not a ~a."
+                  'msg-type 'field value 'type)))])))]))
 
 (mat write-errors ()
-  (define-syntax error-text
-    (syntax-rules ()
-      [(_ e) (exit-reason->english (catch e))]))
-  (define-syntax bad-field
-    (syntax-rules ()
-      [(_ type field e)
-       (let* ([v e]
-              [m (error-text
-                  (write-message TestAllTypesProto2
-                    (make-message TestAllTypesProto2 [field v])))])
-         (string=? m
-           (format "Exception in TestAllTypesProto2.~a: ~s is not a ~a."
-             'field v 'type)))]))
-  (define-syntax bad-list
-    (syntax-rules ()
-      [(_ type field e)
-       (let* ([v e]
-              [m (error-text
-                  (write-message TestAllTypesProto2
-                    (make-message TestAllTypesProto2 [field (list v)])))])
-         (string=? m
-           (format "Exception in TestAllTypesProto2.~a: ~s is not a ~a."
-             'field v 'type)))]))
-  (define-syntax bad-key
-    (syntax-rules ()
-      [(_ type field $key $value)
-       (let* ([key $key] [value $value]
-              [m (error-text
-                  (write-message TestAllTypesProto2
-                    (make-message TestAllTypesProto2
-                      [field (list (cons key value))])))])
-         (string=? m
-           (format "Exception in TestAllTypesProto2.~a: ~s is not a ~a."
-             'field key 'type)))]))
-  (define-syntax bad-value
-    (syntax-rules ()
-      [(_ type field $key $value)
-       (let* ([key $key] [value $value]
-              [m (error-text
-                  (write-message TestAllTypesProto2
-                    (make-message TestAllTypesProto2
-                      [field (list (cons key value))])))])
-         (string=? m
-           (format "Exception in TestAllTypesProto2.~a: ~s is not a ~a."
-             'field value 'type)))]))
+  (define-helpers TestAllTypesProto2 bad-field bad-key bad-value)
+  (define-bad-repeated bad-list TestAllTypesProto2 list)
 
   (assert (bad-field int32 optional_int32 1.5))
   (assert (bad-field int64 optional_int64 1/2))
@@ -275,3 +312,61 @@
   (assert (bad-value bytevector map_string_bytes "x" "y"))
   (assert (bad-value ForeignMessageProto2 map_string_foreign_message "x" 'y))
   (assert (bad-value ForeignEnumProto2 map_string_foreign_enum "x" #f)))
+
+(mat swish-options ()
+  (define-helpers SpecialTypesMessage bad-field bad-key bad-value)
+  (define-bad-repeated bad-list SpecialTypesMessage list)
+
+  ;; round trip
+  (let* ([m1 (make-message SpecialTypesMessage
+               [repeated_double_list '(0.0 1.0 2.0 4.0 -4.0 -2.0 -1.0)]
+               [repeated_double_flvector '#vfl(0.0 1.0 2.0 4.0 -4.0 -2.0 -1.0)]
+               [repeated_float_flvector '#vfl(0.0 1.0 2.0 4.0 -4.0 -2.0 -1.0)])]
+         [m2 (read-message SpecialTypesMessage
+               (write-message SpecialTypesMessage m1))])
+    (assert-equal? m1 m2))
+  ;; optional/empty values
+  (let* ([m1 (make-message SpecialTypesMessage)]
+         [m2 (read-message SpecialTypesMessage
+               (write-message SpecialTypesMessage m1))])
+    (assert-equal? m1 m2))
+  ;; write errors
+  (assert (bad-field flvector repeated_double_flvector "x"))
+  (assert (bad-field flvector repeated_float_flvector "x"))
+  (assert (bad-list double repeated_double_list "x"))
+  )
+
+(mat lazy-flvector ()
+  ;; This provides coverage of consolidate-lazy-flvector. The test
+  ;; scribbles individual flvectors, then takes the resulting
+  ;; bytevectors and appends them. Reading these messages triggers the
+  ;; cases where the input is a set of pairs containing flvectors.
+  (define (pickle vfl)
+    (write-message FlvectorValue (make-message FlvectorValue [value vfl])))
+  (define (unpickle bv)
+    (FlvectorValue value (read-message FlvectorValue bv)))
+  (let ([bv (bv-append (pickle '#vfl(1.0)) (pickle '#vfl(2.0 3.0)))])
+    (assert-equal? '#vfl(1.0 2.0 3.0)
+      (unpickle bv))
+    (assert-equal? '#vfl(1.0 2.0 3.0 1.0 2.0 3.0)
+      (unpickle (bv-repeat bv 2)))
+    (assert-equal? '#vfl(1.0 2.0 3.0 1.0 2.0 3.0 1.0 2.0 3.0)
+      (unpickle (bv-repeat bv 3))))
+  )
+
+(mat merge-flvector ()
+  ;; This provides coverage of merge-field with flvector types.
+  (define (pickle vfl)
+    (write-message Container
+      (make-message Container
+        [inner (make-message FlvectorValue [value vfl])])))
+  (define (unpickle bv)
+    (FlvectorValue value (Container inner (read-message Container bv))))
+  (let ([bv (bv-append (pickle '#vfl(1.0)) (pickle '#vfl(2.0 3.0)))])
+    (assert-equal? '#vfl(1.0 2.0 3.0)
+      (unpickle bv))
+    (assert-equal? '#vfl(1.0 2.0 3.0 1.0 2.0 3.0)
+      (unpickle (bv-repeat bv 2)))
+    (assert-equal? '#vfl(1.0 2.0 3.0 1.0 2.0 3.0 1.0 2.0 3.0)
+      (unpickle (bv-repeat bv 3))))
+  )

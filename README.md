@@ -16,8 +16,9 @@ The following field types are supported:
 - String: <tt>string</tt>
 - Bytevector: <tt>bytes</tt>
 - Message: <tt>(message _message-type_)</tt>
-- List of any of the above: <tt>(repeated _type_)</tt>
+- List of any of the above: <tt>(list _type_)</tt>
 - Map: <tt>(map _key-type_ _value-type_)</tt>
+- Flonum-only vector: <tt>(flvector float)</tt> and <tt>(flvector double)</tt>
 
 Each message definition produces a corresponding tuple
 definition:
@@ -57,7 +58,7 @@ there is not a guaranteed one-to-one mapping from values to symbols.
 - String fields are represented by strings with the UTF-8 encoding. The default value is the empty string.
 - Bytes fields are represented by bytevectors. The default value is the empty bytevector.
 - Message fields are represented by a tuple or #f for missing. The default value is #f.
-- Repeated fields are represented by a list of the underlying type. The default value is the empty list.
+- Repeated fields are represented by either a list of the underlying type or an flvector. The default value is the empty list or the empty flvector.
 - Map fields types are represented by a list of pairs. For each pair, the _car_ is the key, and the _cdr_ is the value. The default value is the empty list.
 
 #### Maker
@@ -112,3 +113,23 @@ definitions of messages and enumerations from protobuf text definitions.
 <pre>
 protoc --plugin=<i>path-to-protoc-gen-scheme</i> --scheme_out=<i>OUT_DIR</i> <i>PROTO_FILES</i>
 </pre>
+
+### Extensions
+
+This plugin supports an extension to represent repeated floating-point
+numbers as an flvector. At the command line include the
+following option:
+<tt>--proto_path=<i>path-to-protoc-gen-scheme</i></tt>
+
+In your protobuf configuration file, import
+<tt>swish_options.proto</tt>, and add the option
+<tt>[(swish.protobuf.swishtype)="flvector"]</tt> to each field. An
+example is shown below.
+
+```
+import "swish_options.proto";
+
+message ExampleMessage {
+  repeated double numbers = 1 [(swish.protobuf.swishtype)="flvector"];
+}
+```

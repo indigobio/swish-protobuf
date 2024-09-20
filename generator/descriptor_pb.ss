@@ -2,34 +2,34 @@
 ;;; source: google/protobuf/descriptor.proto
 
 (define-message FileDescriptorSet
-  (file (repeated (message FileDescriptorProto)) 1))
+  (file (list (message FileDescriptorProto)) 1))
 
 (define-message FileDescriptorProto
   (name string 1)
   (package string 2)
-  (dependency (repeated string) 3)
-  (public_dependency (repeated int32) 10)
-  (weak_dependency (repeated int32) 11)
-  (message_type (repeated (message DescriptorProto)) 4)
-  (enum_type (repeated (message EnumDescriptorProto)) 5)
-  (service (repeated (message ServiceDescriptorProto)) 6)
-  (extension (repeated (message FieldDescriptorProto)) 7)
+  (dependency (list string) 3)
+  (public_dependency (list int32) 10)
+  (weak_dependency (list int32) 11)
+  (message_type (list (message DescriptorProto)) 4)
+  (enum_type (list (message EnumDescriptorProto)) 5)
+  (service (list (message ServiceDescriptorProto)) 6)
+  (extension (list (message FieldDescriptorProto)) 7)
   (options (message FileOptions) 8)
   (source_code_info (message SourceCodeInfo) 9)
   (syntax string 12)
-  (edition string 13))
+  (edition (enum Edition) 14))
 
 (define-message DescriptorProto
   (name string 1)
-  (field (repeated (message FieldDescriptorProto)) 2)
-  (extension (repeated (message FieldDescriptorProto)) 6)
-  (nested_type (repeated (message DescriptorProto)) 3)
-  (enum_type (repeated (message EnumDescriptorProto)) 4)
-  (extension_range (repeated (message DescriptorProto.ExtensionRange)) 5)
-  (oneof_decl (repeated (message OneofDescriptorProto)) 8)
+  (field (list (message FieldDescriptorProto)) 2)
+  (extension (list (message FieldDescriptorProto)) 6)
+  (nested_type (list (message DescriptorProto)) 3)
+  (enum_type (list (message EnumDescriptorProto)) 4)
+  (extension_range (list (message DescriptorProto.ExtensionRange)) 5)
+  (oneof_decl (list (message OneofDescriptorProto)) 8)
   (options (message MessageOptions) 7)
-  (reserved_range (repeated (message DescriptorProto.ReservedRange)) 9)
-  (reserved_name (repeated string) 10))
+  (reserved_range (list (message DescriptorProto.ReservedRange)) 9)
+  (reserved_name (list string) 10))
 
 (define-message DescriptorProto.ExtensionRange
   (start int32 1)
@@ -41,8 +41,8 @@
   (end int32 2))
 
 (define-message ExtensionRangeOptions
-  (uninterpreted_option (repeated (message UninterpretedOption)) 999)
-  (declaration (repeated (message ExtensionRangeOptions.Declaration)) 2)
+  (uninterpreted_option (list (message UninterpretedOption)) 999)
+  (declaration (list (message ExtensionRangeOptions.Declaration)) 2)
   (features (message FeatureSet) 50)
   (verification (enum ExtensionRangeOptions.VerificationState) 3))
 
@@ -101,10 +101,10 @@
 
 (define-message EnumDescriptorProto
   (name string 1)
-  (value (repeated (message EnumValueDescriptorProto)) 2)
+  (value (list (message EnumValueDescriptorProto)) 2)
   (options (message EnumOptions) 3)
-  (reserved_range (repeated (message EnumDescriptorProto.EnumReservedRange)) 4)
-  (reserved_name (repeated string) 5))
+  (reserved_range (list (message EnumDescriptorProto.EnumReservedRange)) 4)
+  (reserved_name (list string) 5))
 
 (define-message EnumDescriptorProto.EnumReservedRange
   (start int32 1)
@@ -117,7 +117,7 @@
 
 (define-message ServiceDescriptorProto
   (name string 1)
-  (method (repeated (message MethodDescriptorProto)) 2)
+  (method (list (message MethodDescriptorProto)) 2)
   (options (message ServiceOptions) 3))
 
 (define-message MethodDescriptorProto
@@ -139,7 +139,6 @@
   (cc_generic_services bool 16)
   (java_generic_services bool 17)
   (py_generic_services bool 18)
-  (php_generic_services bool 42)
   (deprecated bool 23)
   (cc_enable_arenas bool 31)
   (objc_class_prefix string 36)
@@ -150,7 +149,7 @@
   (php_metadata_namespace string 44)
   (ruby_package string 45)
   (features (message FeatureSet) 50)
-  (uninterpreted_option (repeated (message UninterpretedOption)) 999))
+  (uninterpreted_option (list (message UninterpretedOption)) 999))
 
 (define-enum FileOptions.OptimizeMode
   (SPEED 1)
@@ -164,7 +163,7 @@
   (map_entry bool 7)
   (deprecated_legacy_json_field_conflicts bool 11)
   (features (message FeatureSet) 12)
-  (uninterpreted_option (repeated (message UninterpretedOption)) 999))
+  (uninterpreted_option (list (message UninterpretedOption)) 999))
 
 (define-message FieldOptions
   (ctype (enum FieldOptions.CType) 1)
@@ -176,14 +175,22 @@
   (weak bool 10)
   (debug_redact bool 16)
   (retention (enum FieldOptions.OptionRetention) 17)
-  (targets (repeated (enum FieldOptions.OptionTargetType)) 19)
-  (edition_defaults (repeated (message FieldOptions.EditionDefault)) 20)
+  (targets (list (enum FieldOptions.OptionTargetType)) 19)
+  (edition_defaults (list (message FieldOptions.EditionDefault)) 20)
   (features (message FeatureSet) 21)
-  (uninterpreted_option (repeated (message UninterpretedOption)) 999))
+  (feature_support (message FieldOptions.FeatureSupport) 22)
+  (uninterpreted_option (list (message UninterpretedOption)) 999)
+  (swishtype string 20000))
 
 (define-message FieldOptions.EditionDefault
-  (edition string 1)
+  (edition (enum Edition) 3)
   (value string 2))
+
+(define-message FieldOptions.FeatureSupport
+  (edition_introduced (enum Edition) 1)
+  (edition_deprecated (enum Edition) 2)
+  (deprecation_warning string 3)
+  (edition_removed (enum Edition) 4))
 
 (define-enum FieldOptions.CType
   (STRING 0)
@@ -214,31 +221,32 @@
 
 (define-message OneofOptions
   (features (message FeatureSet) 1)
-  (uninterpreted_option (repeated (message UninterpretedOption)) 999))
+  (uninterpreted_option (list (message UninterpretedOption)) 999))
 
 (define-message EnumOptions
   (allow_alias bool 2)
   (deprecated bool 3)
   (deprecated_legacy_json_field_conflicts bool 6)
   (features (message FeatureSet) 7)
-  (uninterpreted_option (repeated (message UninterpretedOption)) 999))
+  (uninterpreted_option (list (message UninterpretedOption)) 999))
 
 (define-message EnumValueOptions
   (deprecated bool 1)
   (features (message FeatureSet) 2)
   (debug_redact bool 3)
-  (uninterpreted_option (repeated (message UninterpretedOption)) 999))
+  (feature_support (message FieldOptions.FeatureSupport) 4)
+  (uninterpreted_option (list (message UninterpretedOption)) 999))
 
 (define-message ServiceOptions
   (features (message FeatureSet) 34)
   (deprecated bool 33)
-  (uninterpreted_option (repeated (message UninterpretedOption)) 999))
+  (uninterpreted_option (list (message UninterpretedOption)) 999))
 
 (define-message MethodOptions
   (deprecated bool 33)
   (idempotency_level (enum MethodOptions.IdempotencyLevel) 34)
   (features (message FeatureSet) 35)
-  (uninterpreted_option (repeated (message UninterpretedOption)) 999))
+  (uninterpreted_option (list (message UninterpretedOption)) 999))
 
 (define-enum MethodOptions.IdempotencyLevel
   (IDEMPOTENCY_UNKNOWN 0)
@@ -246,7 +254,7 @@
   (IDEMPOTENT 2))
 
 (define-message UninterpretedOption
-  (name (repeated (message UninterpretedOption.NamePart)) 2)
+  (name (list (message UninterpretedOption.NamePart)) 2)
   (identifier_value string 3)
   (positive_int_value uint64 4)
   (negative_int_value int64 5)
@@ -262,10 +270,9 @@
   (field_presence (enum FeatureSet.FieldPresence) 1)
   (enum_type (enum FeatureSet.EnumType) 2)
   (repeated_field_encoding (enum FeatureSet.RepeatedFieldEncoding) 3)
-  (string_field_validation (enum FeatureSet.StringFieldValidation) 4)
+  (utf8_validation (enum FeatureSet.Utf8Validation) 4)
   (message_encoding (enum FeatureSet.MessageEncoding) 5)
-  (json_format (enum FeatureSet.JsonFormat) 6)
-  (raw_features (message FeatureSet) 999))
+  (json_format (enum FeatureSet.JsonFormat) 6))
 
 (define-enum FeatureSet.FieldPresence
   (FIELD_PRESENCE_UNKNOWN 0)
@@ -283,10 +290,9 @@
   (PACKED 1)
   (EXPANDED 2))
 
-(define-enum FeatureSet.StringFieldValidation
-  (STRING_FIELD_VALIDATION_UNKNOWN 0)
-  (MANDATORY 1)
-  (HINT 2)
+(define-enum FeatureSet.Utf8Validation
+  (UTF8_VALIDATION_UNKNOWN 0)
+  (VERIFY 2)
   (NONE 3))
 
 (define-enum FeatureSet.MessageEncoding
@@ -299,21 +305,31 @@
   (ALLOW 1)
   (LEGACY_BEST_EFFORT 2))
 
+(define-message FeatureSetDefaults
+  (defaults (list (message FeatureSetDefaults.FeatureSetEditionDefault)) 1)
+  (minimum_edition (enum Edition) 4)
+  (maximum_edition (enum Edition) 5))
+
+(define-message FeatureSetDefaults.FeatureSetEditionDefault
+  (edition (enum Edition) 3)
+  (overridable_features (message FeatureSet) 4)
+  (fixed_features (message FeatureSet) 5))
+
 (define-message SourceCodeInfo
-  (location (repeated (message SourceCodeInfo.Location)) 1))
+  (location (list (message SourceCodeInfo.Location)) 1))
 
 (define-message SourceCodeInfo.Location
-  (path (repeated int32) 1)
-  (span (repeated int32) 2)
+  (path (list int32) 1)
+  (span (list int32) 2)
   (leading_comments string 3)
   (trailing_comments string 4)
-  (leading_detached_comments (repeated string) 6))
+  (leading_detached_comments (list string) 6))
 
 (define-message GeneratedCodeInfo
-  (annotation (repeated (message GeneratedCodeInfo.Annotation)) 1))
+  (annotation (list (message GeneratedCodeInfo.Annotation)) 1))
 
 (define-message GeneratedCodeInfo.Annotation
-  (path (repeated int32) 1)
+  (path (list int32) 1)
   (source_file string 2)
   (begin int32 3)
   (end int32 4)
@@ -323,3 +339,17 @@
   (NONE 0)
   (SET 1)
   (ALIAS 2))
+
+(define-enum Edition
+  (EDITION_UNKNOWN 0)
+  (EDITION_LEGACY 900)
+  (EDITION_PROTO2 998)
+  (EDITION_PROTO3 999)
+  (EDITION_2023 1000)
+  (EDITION_2024 1001)
+  (EDITION_1_TEST_ONLY 1)
+  (EDITION_2_TEST_ONLY 2)
+  (EDITION_99997_TEST_ONLY 99997)
+  (EDITION_99998_TEST_ONLY 99998)
+  (EDITION_99999_TEST_ONLY 99999)
+  (EDITION_MAX 2147483647))
