@@ -143,6 +143,10 @@
   (group_int32 int32 202)
   (group_uint32 uint32 203))
 
+(define-message TestAllTypesProto2.MultiWordGroupField
+  (group_int32 int32 205)
+  (group_uint32 uint32 206))
+
 (define-message TestAllTypesProto2.MessageSetCorrect)
 
 (define-message TestAllTypesProto2.MessageSetCorrectExtension1
@@ -159,6 +163,10 @@
 
 (define-message ForeignMessageProto2
   (c int32 1))
+
+(define-message GroupField
+  (group_int32 int32 122)
+  (group_uint32 uint32 123))
 
 (define-message UnknownToTestAllTypes
   (optional_int32 int32 1001)
