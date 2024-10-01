@@ -1,4 +1,6 @@
 *~
 *.html
 *.mo
+*.profile
 *.so
+*.sop

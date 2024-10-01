@@ -1,14 +1,29 @@
 #!/usr/bin/env swish
+
+(let ([dir (path-parent (path-parent (get-real-path (car (command-line)))))])
+  (library-directories (list (cons dir dir))))
+
+(when (equal? (getenv "PROFILE") "yes")
+  (let* ([swish (osi_get_executable_path)]
+         [lib (path-combine (path-parent swish) "lib")]
+         [dir (path-parent (path-parent (get-real-path (car (command-line)))))])
+    (library-directories (append (library-directories) (list (cons dir lib)))))
+  (eval
+   '(begin
+      (import (swish profile))
+      (profile:prepare)
+      (let ([fn "conformance.profile"])
+        (profile:start (and (file-exists? fn) fn) fn #t)))))
+
 (reset-handler abort)
-(compile-profile #f)
 (let ([op (console-error-port)])
   (current-output-port op)
   (console-output-port op)
   (trace-output-port op))
-(let ([dir (path-parent (path-parent (get-real-path (car (command-line)))))])
-  (library-directories (list (cons dir dir))))
 (compile-file-message #f)
 (compile-imported-libraries #t)
 (import (test conformance))
-(main (standard-input-port) (standard-output-port))
-(when (compile-profile) (profile-dump-html))
+(on-exit
+ (when (whereis 'profiler)
+   (profile:save))
+ (main (standard-input-port) (standard-output-port)))

@@ -1,6 +1,20 @@
 #!/bin/sh
-swish-test -L .. protobuf.ms
-runner=~/protobuf/conformance_test_runner
+
+if [ "$PROFILE" == "yes" ]; then
+  rm -f mats.profile conformance.profile
+  swish-test --save-profile mats.profile -L .. protobuf.ms
+else
+  swish-test -L .. protobuf.ms
+fi
+
+runner=./protobuf/bin/conformance_test_runner
 if [ -x $runner ]; then
     $runner --enforce_recommended --failure_list failure_list_scheme.txt ./conformance-scheme
+fi
+
+if [ "$PROFILE" == "yes" ]; then
+  swish-test \
+    --load-profile mats.profile conformance.profile \
+    --coverage coverage.html \
+    --exclude '**test**'
 fi
