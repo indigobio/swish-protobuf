@@ -6,15 +6,46 @@
    (swish imports)
    )
 
-  (include "any_pb.ss")
-  (include "conformance_pb.ss")
-  (include "duration_pb.ss")
-  (include "field_mask_pb.ss")
-  (include "struct_pb.ss")
-  (include "test_messages_proto2_pb.ss")
-  (include "test_messages_proto3_pb.ss")
-  (include "timestamp_pb.ss")
-  (include "wrappers_pb.ss")
+  (define-syntax keyword?
+    (syntax-rules ()
+      [(_ x) (eq? (datum x) 'x)]))
+
+  (meta define env.SWISHTYPE (getenv "SWISHTYPE"))
+
+  (meta-cond
+   [(or (not env.SWISHTYPE) (equal? env.SWISHTYPE "list"))
+    (meta define (rewrite-field clause) clause)]
+   [(equal? env.SWISHTYPE "flvector")
+    (meta define (rewrite-field clause)
+      (syntax-case clause ()
+        [(fname (list double) fnumber)
+         (and (keyword? list) (keyword? double))
+         #'(fname (flvector double) fnumber)]
+        [(fname (list float) fnumber)
+         (and (keyword? list) (keyword? float))
+         #'(fname (flvector float) fnumber)]
+        [(fname ftype fnumber) clause]))]
+   [else
+    (meta define (rewrite-field clause)
+      (syntax-error env.SWISHTYPE "unknown SWISHTYPE:"))])
+
+  (let-syntax
+      ([define-message
+        (lambda (x)
+          (syntax-case x ()
+            [(_ type clause ...)
+             #`(define-message type #,@(map rewrite-field #'(clause ...)))]))])
+
+    (include "any_pb.ss")
+    (include "conformance_pb.ss")
+    (include "duration_pb.ss")
+    (include "field_mask_pb.ss")
+    (include "struct_pb.ss")
+    (include "test_messages_proto2_pb.ss")
+    (include "test_messages_proto3_pb.ss")
+    (include "timestamp_pb.ss")
+    (include "wrappers_pb.ss")
+    )
 
   (define (read-request ip)
     (let ([bv (get-bytevector-n ip 4)])
