@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ ! -d protobuf ]]; then
+  git clone -q -b v28.2 --filter=blob:none --recurse-submodules --also-filter-submodules https://github.com/protocolbuffers/protobuf.git
+fi
