@@ -9,7 +9,11 @@ fi
 
 runner=./protobuf/bin/conformance_test_runner
 if [ -x $runner ]; then
-    $runner --enforce_recommended --failure_list failure_list_scheme.txt ./conformance-scheme
+  rm -f failing_tests.txt
+  rm -f conformance.{so,sop} # force a recompile
+  $runner --enforce_recommended --failure_list failure_list_scheme.txt ./conformance-scheme
+  rm -f conformance.{so,sop} # force a recompile
+  SWISHTYPE="flvector" $runner --enforce_recommended --failure_list failure_list_scheme.txt ./conformance-scheme
 fi
 
 if [ "$PROFILE" == "yes" ]; then
