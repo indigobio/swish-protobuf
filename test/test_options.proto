@@ -4,9 +4,11 @@ import "swish_options.proto";
 package test.options.proto;
 
 message SpecialTypesMessage {
-  repeated double repeated_double_list = 1 [(swish.protobuf.swishtype)="list"];
-  repeated double repeated_double_flvector = 2 [(swish.protobuf.swishtype)="flvector"];
-  repeated float repeated_float_flvector = 3 [(swish.protobuf.swishtype)="flvector"];
+  repeated double repeated_double_flvector = 1 [(swish.protobuf.swishtype)="flvector"];
+  repeated double repeated_double_list = 2 [(swish.protobuf.swishtype)="list"];
+  repeated double repeated_double_vector = 3 [(swish.protobuf.swishtype)="vector"];
+  repeated float repeated_float_flvector = 4 [(swish.protobuf.swishtype)="flvector"];
+  repeated float repeated_float_vector = 5 [(swish.protobuf.swishtype)="vector"];
 }
 
 message FlvectorValue {

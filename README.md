@@ -16,7 +16,7 @@ The following field types are supported:
 - String: <tt>string</tt>
 - Bytevector: <tt>bytes</tt>
 - Message: <tt>(message _message-type_)</tt>
-- List of any of the above: <tt>(list _type_)</tt>
+- List or vector of any of the above: <tt>(list _type_)</tt> and <tt>(vector _type_)</tt>
 - Map: <tt>(map _key-type_ _value-type_)</tt>
 - Flonum-only vector: <tt>(flvector float)</tt> and <tt>(flvector double)</tt>
 
@@ -131,5 +131,17 @@ import "swish_options.proto";
 
 message ExampleMessage {
   repeated double numbers = 1 [(swish.protobuf.swishtype)="flvector"];
+}
+```
+
+This plugin also supports representing repeated arbitrary values as a
+<tt>vector</tt> by setting
+<tt>[(swish.protobuf.swishtype)="vector"]</tt>.
+
+```
+import "swish_options.proto";
+
+message ExampleMessage {
+  repeated string words = 1 [(swish.protobuf.swishtype)="vector"];
 }
 ```
