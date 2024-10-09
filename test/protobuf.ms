@@ -316,12 +316,15 @@
 (mat swish-options ()
   (define-helpers SpecialTypesMessage bad-field bad-key bad-value)
   (define-bad-repeated bad-list SpecialTypesMessage list)
+  (define-bad-repeated bad-vector SpecialTypesMessage vector)
 
   ;; round trip
   (let* ([m1 (make-message SpecialTypesMessage
-               [repeated_double_list '(0.0 1.0 2.0 4.0 -4.0 -2.0 -1.0)]
                [repeated_double_flvector '#vfl(0.0 1.0 2.0 4.0 -4.0 -2.0 -1.0)]
-               [repeated_float_flvector '#vfl(0.0 1.0 2.0 4.0 -4.0 -2.0 -1.0)])]
+               [repeated_double_list '(0.0 1.0 2.0 4.0 -4.0 -2.0 -1.0)]
+               [repeated_double_vector '#(0.0 1.0 2.0 4.0 -4.0 -2.0 -1.0)]
+               [repeated_float_flvector '#vfl(0.0 1.0 2.0 4.0 -4.0 -2.0 -1.0)]
+               [repeated_float_vector '#(0.0 1.0 2.0 4.0 -4.0 -2.0 -1.0)])]
          [m2 (read-message SpecialTypesMessage
                (write-message SpecialTypesMessage m1))])
     (assert-equal? m1 m2))
@@ -333,7 +336,11 @@
   ;; write errors
   (assert (bad-field flvector repeated_double_flvector "x"))
   (assert (bad-field flvector repeated_float_flvector "x"))
+  (assert (bad-field vector repeated_double_vector "x"))
+  (assert (bad-field vector repeated_float_vector "x"))
   (assert (bad-list double repeated_double_list "x"))
+  (assert (bad-vector double repeated_double_vector "x"))
+  (assert (bad-vector float repeated_float_vector "x"))
   )
 
 (mat lazy-flvector ()

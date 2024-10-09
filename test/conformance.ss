@@ -25,6 +25,13 @@
          (and (keyword? list) (keyword? float))
          #'(fname (flvector float) fnumber)]
         [(fname ftype fnumber) clause]))]
+   [(equal? env.SWISHTYPE "vector")
+    (meta define (rewrite-field clause)
+      (syntax-case clause ()
+        [(fname (list type) fnumber)
+         (keyword? list)
+         #'(fname (vector type) fnumber)]
+        [(fname ftype fnumber) clause]))]
    [else
     (meta define (rewrite-field clause)
       (syntax-error env.SWISHTYPE "unknown SWISHTYPE:"))])

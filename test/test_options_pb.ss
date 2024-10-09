@@ -3,9 +3,11 @@
 ;;; include: swish_options.proto
 
 (define-message SpecialTypesMessage
-  (repeated_double_list (list double) 1)
-  (repeated_double_flvector (flvector double) 2)
-  (repeated_float_flvector (flvector float) 3))
+  (repeated_double_flvector (flvector double) 1)
+  (repeated_double_list (list double) 2)
+  (repeated_double_vector (vector double) 3)
+  (repeated_float_flvector (flvector float) 4)
+  (repeated_float_vector (vector float) 5))
 
 (define-message FlvectorValue
   (value (flvector double) 1))
