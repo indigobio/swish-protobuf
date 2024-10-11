@@ -373,13 +373,13 @@
       [(_ who x (repeated type))
        (keyword? repeated)
        (if (list? x)
-           (for-all (lambda (e) (check-field who e type)) x)
+           (for-each (lambda (e) (check-field who e type)) x)
            (errorf who "~s is not a list" x))]
       ;; map
       [(_ who x (map key-type value-type))
        (keyword? map)
        (if (and (list? x) (for-all pair? x))
-           (for-all
+           (for-each
             (lambda (p)
               (check-field who (car p) key-type)
               (check-field who (cdr p) value-type))
