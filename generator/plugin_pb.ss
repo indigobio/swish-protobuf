@@ -9,16 +9,18 @@
   (suffix string 4))
 
 (define-message CodeGeneratorRequest
-  (file_to_generate (repeated string) 1)
+  (file_to_generate (list string) 1)
   (parameter string 2)
-  (proto_file (repeated (message FileDescriptorProto)) 15)
-  (source_file_descriptors (repeated (message FileDescriptorProto)) 17)
+  (proto_file (list (message FileDescriptorProto)) 15)
+  (source_file_descriptors (list (message FileDescriptorProto)) 17)
   (compiler_version (message Version) 3))
 
 (define-message CodeGeneratorResponse
   (error string 1)
   (supported_features uint64 2)
-  (file (repeated (message CodeGeneratorResponse.File)) 15))
+  (minimum_edition int32 3)
+  (maximum_edition int32 4)
+  (file (list (message CodeGeneratorResponse.File)) 15))
 
 (define-message CodeGeneratorResponse.File
   (name string 1)

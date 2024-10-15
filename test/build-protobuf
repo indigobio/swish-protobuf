@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd protobuf
+cmake . \
+  -DCMAKE_CXX_STANDARD=17 \
+  -Dprotobuf_BUILD_CONFORMANCE=ON \
+  -Dprotobuf_BUILD_TESTS=OFF
+
+cmake --build .
+cd ..
