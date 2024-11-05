@@ -104,7 +104,7 @@ buffers.
 
 ## Scheme Protocol Buffer Compiler Plugin
 
-[generator.ss](https://github.com/burgerrg/swish-protobuf/blob/master/generator/generator.ss)
+[generator.ss](generator/generator.ss)
 is the source code for the protoc-gen-scheme protoc plugin. It generates S-expression
 definitions of messages and enumerations from protobuf text definitions.
 
