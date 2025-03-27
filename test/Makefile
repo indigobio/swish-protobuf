@@ -5,16 +5,16 @@ PB := $(shell git ls-files '*_pb.ss')
 
 all: $(PB)
 
-$(PB): $(PBSRC) rebuild-protos
+$(PB): $(PBSRC) rebuild-protos protobuf/protoc
 	./rebuild-protos
 
-protobuf/bin/conformance_test_runner: build-protobuf
+protobuf/conformance_test_runner protobuf/protoc: build-protobuf
 	./build-protobuf
 
-coverage: all protobuf/bin/conformance_test_runner
+coverage: all protobuf/conformance_test_runner
 	PROFILE=yes ./test-scheme
 
-test: all protobuf/bin/conformance_test_runner
+test: all protobuf/conformance_test_runner
 	./test-scheme
 
 clean:

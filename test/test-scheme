@@ -7,13 +7,13 @@ else
   swish-test -L .. protobuf.ms
 fi
 
-runner=./protobuf/bin/conformance_test_runner
+runner=./protobuf/conformance_test_runner
 if [ -x $runner ]; then
   rm -f failing_tests.txt
   rm -f conformance.{so,sop} # force a recompile
-  $runner --enforce_recommended --failure_list failure_list_scheme.txt ./conformance-scheme
+  $runner --enforce_recommended --failure_list failure_list_scheme.txt --output_dir . ./conformance-scheme
   rm -f conformance.{so,sop} # force a recompile
-  SWISHTYPE="flvector" $runner --enforce_recommended --failure_list failure_list_scheme.txt ./conformance-scheme
+  SWISHTYPE="flvector" $runner --enforce_recommended --failure_list failure_list_scheme.txt --output_dir . ./conformance-scheme
 fi
 
 if [ "$PROFILE" == "yes" ]; then

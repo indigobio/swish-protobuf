@@ -257,6 +257,23 @@
   (BAZ 2)
   (NEG -1))
 
+(define-message TestLargeOneof
+  (a1 (message TestLargeOneof.A1) 1)
+  (a2 (message TestLargeOneof.A2) 2)
+  (a3 (message TestLargeOneof.A3) 3)
+  (a4 (message TestLargeOneof.A4) 4)
+  (a5 (message TestLargeOneof.A5) 5))
+
+(define-message TestLargeOneof.A1)
+
+(define-message TestLargeOneof.A2)
+
+(define-message TestLargeOneof.A3)
+
+(define-message TestLargeOneof.A4)
+
+(define-message TestLargeOneof.A5)
+
 (define-enum ForeignEnumProto2
   (FOREIGN_FOO 0)
   (FOREIGN_BAR 1)

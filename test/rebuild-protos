@@ -3,18 +3,18 @@
 ./get-protobuf
 PB_REPO=./protobuf
 
-protoc --plugin=../protoc-gen-scheme --proto_path=$PB_REPO/conformance --scheme_out=. conformance.proto
+protobuf/protoc --plugin=../protoc-gen-scheme --proto_path=$PB_REPO/conformance --scheme_out=. conformance.proto
 
-protoc --plugin=../protoc-gen-scheme --proto_path=$PB_REPO/src --scheme_out=. google/protobuf/any.proto
-protoc --plugin=../protoc-gen-scheme --proto_path=$PB_REPO/src --scheme_out=. google/protobuf/duration.proto
-protoc --plugin=../protoc-gen-scheme --proto_path=$PB_REPO/src --scheme_out=. google/protobuf/field_mask.proto
-protoc --plugin=../protoc-gen-scheme --proto_path=$PB_REPO/src --scheme_out=. google/protobuf/struct.proto
-protoc --plugin=../protoc-gen-scheme --proto_path=$PB_REPO/src --scheme_out=. google/protobuf/test_messages_proto2.proto
-protoc --plugin=../protoc-gen-scheme --proto_path=$PB_REPO/src --scheme_out=. google/protobuf/test_messages_proto3.proto
-protoc --plugin=../protoc-gen-scheme --proto_path=$PB_REPO/src --scheme_out=. google/protobuf/timestamp.proto
-protoc --plugin=../protoc-gen-scheme --proto_path=$PB_REPO/src --scheme_out=. google/protobuf/wrappers.proto
+protobuf/protoc --plugin=../protoc-gen-scheme --proto_path=$PB_REPO/src --scheme_out=. google/protobuf/any.proto
+protobuf/protoc --plugin=../protoc-gen-scheme --proto_path=$PB_REPO/src --scheme_out=. google/protobuf/duration.proto
+protobuf/protoc --plugin=../protoc-gen-scheme --proto_path=$PB_REPO/src --scheme_out=. google/protobuf/field_mask.proto
+protobuf/protoc --plugin=../protoc-gen-scheme --proto_path=$PB_REPO/src --scheme_out=. google/protobuf/struct.proto
+protobuf/protoc --plugin=../protoc-gen-scheme --proto_path=$PB_REPO/src --scheme_out=. google/protobuf/test_messages_proto2.proto
+protobuf/protoc --plugin=../protoc-gen-scheme --proto_path=$PB_REPO/src --scheme_out=. google/protobuf/test_messages_proto3.proto
+protobuf/protoc --plugin=../protoc-gen-scheme --proto_path=$PB_REPO/src --scheme_out=. google/protobuf/timestamp.proto
+protobuf/protoc --plugin=../protoc-gen-scheme --proto_path=$PB_REPO/src --scheme_out=. google/protobuf/wrappers.proto
 
 mv google/protobuf/*.ss .
 rm -rf google/
 
-protoc --plugin=../protoc-gen-scheme --proto_path=.. --proto_path=. --scheme_out=. test_options.proto
+protobuf/protoc --plugin=../protoc-gen-scheme --proto_path=.. --proto_path=. --proto_path=$PB_REPO/src --scheme_out=. test_options.proto
