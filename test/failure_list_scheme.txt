@@ -103,6 +103,8 @@ Recommended.Proto2.ProtobufInput.ValidDataScalarBinary.STRING[0].ProtobufOutput 
 Recommended.Proto2.ProtobufInput.ValidDataScalarBinary.UINT32[0].ProtobufOutput # Response didn't have any field in the Response.
 Recommended.Proto2.ProtobufInput.ValidDataScalarBinary.UINT32[5].ProtobufOutput # Response didn't have any field in the Response.
 Recommended.Proto2.ProtobufInput.ValidDataScalarBinary.UINT64[0].ProtobufOutput # Response didn't have any field in the Response.
+Recommended.Proto2.ProtobufInput.ValidMessageSetEncoding.SubmessageEncoding.NotUnknown.ProtobufOutput # Failed to parse input or produce output.
+Recommended.Proto2.ProtobufInput.ValidMessageSetEncoding.SubmessageEncoding.ProtobufOutput # Output was not equivalent to reference message: deleted: message_set_correct.(protobuf_test_messages.proto2.TestAllTypesProto2.M
 Recommended.Proto3.ProtobufInput.OneofZeroBool.ProtobufOutput # Response didn't have any field in the Response.
 Recommended.Proto3.ProtobufInput.OneofZeroBytes.ProtobufOutput # Response didn't have any field in the Response.
 Recommended.Proto3.ProtobufInput.OneofZeroDouble.ProtobufOutput # Response didn't have any field in the Response.
@@ -185,6 +187,7 @@ Recommended.Proto3.ProtobufInput.ValidDataScalarBinary.STRING[0].ProtobufOutput 
 Recommended.Proto3.ProtobufInput.ValidDataScalarBinary.UINT32[0].ProtobufOutput # Response didn't have any field in the Response.
 Recommended.Proto3.ProtobufInput.ValidDataScalarBinary.UINT32[5].ProtobufOutput # Response didn't have any field in the Response.
 Recommended.Proto3.ProtobufInput.ValidDataScalarBinary.UINT64[0].ProtobufOutput # Response didn't have any field in the Response.
+Required.Proto2.ProtobufInput.MessageSetEncoding.UnknownExtension.ProtobufOutput # Failed to parse input or produce output.
 Required.Proto2.ProtobufInput.RepeatedScalarMessageMerge.ProtobufOutput # Output was not equivalent to reference message: deleted: optional_nested_message.corecursive.optional_int64: 1234
 Required.Proto2.ProtobufInput.RepeatedScalarSelectsLast.SINT32.ProtobufOutput # Failed to parse input or produce output.
 Required.Proto2.ProtobufInput.UnknownVarint.ProtobufOutput # Response didn't have any field in the Response.
@@ -219,6 +222,8 @@ Required.Proto2.ProtobufInput.ValidDataScalar.STRING[0].ProtobufOutput # Respons
 Required.Proto2.ProtobufInput.ValidDataScalar.UINT32[0].ProtobufOutput # Response didn't have any field in the Response.
 Required.Proto2.ProtobufInput.ValidDataScalar.UINT32[5].ProtobufOutput # Response didn't have any field in the Response.
 Required.Proto2.ProtobufInput.ValidDataScalar.UINT64[0].ProtobufOutput # Response didn't have any field in the Response.
+Required.Proto2.ProtobufInput.ValidMessageSetEncoding.OutOfOrderGroupsEntries.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto2.ProtobufInput.ValidMessageSetEncoding.ProtobufOutput # Failed to parse input or produce output.
 Required.Proto3.ProtobufInput.RepeatedScalarMessageMerge.ProtobufOutput # Output was not equivalent to reference message: deleted: optional_nested_message.corecursive.optional_int64: 1234
 Required.Proto3.ProtobufInput.RepeatedScalarSelectsLast.SINT32.ProtobufOutput # Failed to parse input or produce output.
 Required.Proto3.ProtobufInput.UnknownVarint.ProtobufOutput # Response didn't have any field in the Response.

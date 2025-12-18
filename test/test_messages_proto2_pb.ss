@@ -83,8 +83,10 @@
   (map_fixed64_fixed64 (map fixed64 fixed64) 63)
   (map_sfixed32_sfixed32 (map sfixed32 sfixed32) 64)
   (map_sfixed64_sfixed64 (map sfixed64 sfixed64) 65)
+  (map_int32_bool (map int32 bool) 104)
   (map_int32_float (map int32 float) 66)
   (map_int32_double (map int32 double) 67)
+  (map_int32_nested_message (map int32 (message TestAllTypesProto2.NestedMessage)) 103)
   (map_bool_bool (map bool bool) 68)
   (map_string_string (map string string) 69)
   (map_string_bytes (map string bytes) 70)
@@ -133,7 +135,8 @@
   (field__name15 int32 415)
   (field__Name16 int32 416)
   (field_name17__ int32 417)
-  (Field_name18__ int32 418))
+  (Field_name18__ int32 418)
+  (message_set_correct (message TestAllTypesProto2.MessageSetCorrect) 500))
 
 (define-message TestAllTypesProto2.NestedMessage
   (a int32 1)
@@ -154,6 +157,10 @@
 
 (define-message TestAllTypesProto2.MessageSetCorrectExtension2
   (i int32 9))
+
+(define-message TestAllTypesProto2.ExtensionWithOneof
+  (a int32 1)
+  (b int32 2))
 
 (define-enum TestAllTypesProto2.NestedEnum
   (FOO 0)
